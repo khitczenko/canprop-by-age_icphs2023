@@ -25,9 +25,11 @@ raw data needed to reproduce the full pipeline start-to-finish (available in htt
 * CR_by_child-updated_21_01.csv: Canonical proportions from Semenzin work
 
 
-/scripts
+/scripts (Run in this order to reproduce the full pipeline)
 
 1. get-child-gender-zooniverse.R
-2,3,4,5. get-babblecorpus-cps.R; get-solomon-data.R; get-semenzin-yeli-data.R; get-zooniverse-cps.R
+2. get-babblecorpus-cps.R
+3. get-solomon-data.R
+4. get-semenzin-yeli-data.R
+5. get-zooniverse-cps.R
 6. analysis.R
-
