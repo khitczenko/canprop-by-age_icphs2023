@@ -11,6 +11,7 @@ library(ggpubr)
 library("RColorBrewer")
 library("plotrix")
 
+
 ## These commented-out lines merge data sources and create combined-data-for-analysis.R,
 ## which gets read in below.
 # # read in data from 4 sources and merge
@@ -47,7 +48,28 @@ library("plotrix")
 # Read in combined data (created by commented-out code above)
 df <- read.csv("../data/combined-data-for-analysis.csv", stringsAsFactors = FALSE)
 
+# Set missing weights to the minimum weights value
+df$n_speechlike[is.na(df$n_speechlike)] <- min(df$n_speechlike, na.rm = TRUE)
 
+# Get syllabic complexity
+langinfo <- read.csv("../data/LAAC_Internship2020_Languages.xlsx - Usable as csv.csv")
+df$syllcomplexity[df$corpus == 'Yélî Dnye (N=41)'] <- langinfo$Maddieson_sylcomp[langinfo$Language == 'Yélî']
+df$syllcomplexity[df$corpus == 'Quechua (N=3)'] <- langinfo$Maddieson_sylcomp[langinfo$Language == 'Quechua']
+df$syllcomplexity[df$corpus == 'English-Bergelson (N=10)' | df$corpus == 'English-Seidl (N=10)'] <- langinfo$Maddieson_sylcomp[langinfo$Language == 'English']
+df$syllcomplexity[df$corpus == 'Tseltal (N=10)'] <- langinfo$Maddieson_sylcomp[langinfo$Language == 'Tseltal']
+df$syllcomplexity[df$corpus == 'French (N=10)'] <- langinfo$Maddieson_sylcomp[langinfo$Language == 'French']
+df$syllcomplexity[df$corpus == 'Tsimane\' (N=30)'] <- langinfo$Maddieson_sylcomp[langinfo$Language == 'Tsimane']
+df$syllcomplexity[df$corpus == 'Solomon (N=15)'] <- langinfo$Maddieson_sylcomp[langinfo$Language == 'Roviana']
+df$syllcomplexity <- factor(df$syllcomplexity, levels = c("Low", "Moderate", "High"))
+
+# Get rural vs. urban
+df$urbrur[df$corpus == 'Yélî Dnye (N=41)'] <- 'Rural'
+df$urbrur[df$corpus == 'Quechua (N=3)'] <- 'Rural'
+df$urbrur[df$corpus == 'English-Bergelson (N=10)' | df$corpus == 'English-Seidl (N=10)'] <- 'Urban'
+df$urbrur[df$corpus == 'Tseltal (N=10)'] <- 'Rural'
+df$urbrur[df$corpus == 'French (N=10)'] <- 'Urban'
+df$urbrur[df$corpus == 'Tsimane\' (N=30)'] <- 'Rural'
+df$urbrur[df$corpus == 'Solomon (N=15)'] <- 'Rural'
 
 ### PART 1: Plots for BUCLD abstract & talk
 
@@ -80,109 +102,7 @@ p_sex <- ggplot(df, aes(x = age_mo_round, y = cp, color = child_gender)) + geom_
 
 
 
-### PART 2: Plots for ICPhS paper
-
-# 1. Canonical proportion by age, colored by corpus (updated from BUCLD version for increased readability)
-p_corpus <- ggplot(df, aes(x = age_mo_round, y = cp, color = corpus, shape = corpus)) + geom_point() + 
-  xlab("Age (months)") + ylab("Canonical proportion") + 
-  theme(legend.position="bottom") +
-  guides(colour = guide_legend(nrow = 3)) + 
-  theme(legend.title=element_blank()) + 
-  geom_point(size=3) +
-  scale_color_brewer(palette = "Dark2") +
-  scale_shape_manual(values=c(16,16,20,20,18,15,16,17))
-
-# 2. Canonical proportion by age, colored by syllabic complexity of the language
-# Get syllabic complexity
-langinfo <- read.csv("../data/LAAC_Internship2020_Languages.xlsx - Usable as csv.csv")
-df$syllcomplexity[df$corpus == 'Yélî Dnye (N=41)'] <- langinfo$Maddieson_sylcomp[langinfo$Language == 'Yélî']
-df$syllcomplexity[df$corpus == 'Quechua (N=3)'] <- langinfo$Maddieson_sylcomp[langinfo$Language == 'Quechua']
-df$syllcomplexity[df$corpus == 'English-Bergelson (N=10)' | df$corpus == 'English-Seidl (N=10)'] <- langinfo$Maddieson_sylcomp[langinfo$Language == 'English']
-df$syllcomplexity[df$corpus == 'Tseltal (N=10)'] <- langinfo$Maddieson_sylcomp[langinfo$Language == 'Tseltal']
-df$syllcomplexity[df$corpus == 'French (N=10)'] <- langinfo$Maddieson_sylcomp[langinfo$Language == 'French']
-df$syllcomplexity[df$corpus == 'Tsimane\' (N=30)'] <- langinfo$Maddieson_sylcomp[langinfo$Language == 'Tsimane']
-df$syllcomplexity[df$corpus == 'Solomon (N=15)'] <- langinfo$Maddieson_sylcomp[langinfo$Language == 'Roviana']
-
-# Prepare data for plotting (reorder factors, subset data to overlapping region)
-df$syllcomplexity <- factor(df$syllcomplexity, levels = c("Low", "Moderate", "High"))
-sub_for_comp <- subset(df, age_mo_round <= 40)
-# To see full age range plotted, uncomment the following line:
-# sub_for_comp <- df
-
-# a. Scatterplot for syllabic complexity
-p_syllcomp <- ggplot(sub_for_comp, aes(x = age_mo_round, y = cp, fill = syllcomplexity, shape = syllcomplexity)) + geom_point() + 
-  xlab("Age (months)") + ylab("Canonical proportion") + 
-  theme(legend.position="bottom") +
-  guides(colour = guide_legend(nrow = 1)) + 
-  theme(legend.title=element_blank()) + 
-  geom_point(size=3) + 
-  scale_shape_manual(values=c(25, 23, 24))
-
-# b. Barplot for syllabic complexity
-sub_for_comp.summary <- sub_for_comp %>%
-  group_by(syllcomplexity) %>%
-  summarise(mean = mean(cp), sd = sd(cp), n = n(), se = sd / sqrt(n))
-
-barcomp <-ggplot(data=sub_for_comp, aes(x=syllcomplexity, y=cp, fill=syllcomplexity)) +
-  geom_bar(fun = "mean", stat = "summary") +
-  theme(axis.title.y=element_blank(),legend.position="none") +
-  geom_jitter(data=sub_for_comp, width=0.15, size = 0.25, colour = 'grey40') + 
-  xlab("Syllabic Complexity") + 
-  geom_errorbar(data=sub_for_comp.summary, aes(x=syllcomplexity,y=mean,ymin=mean-se,ymax=mean+se), width=.2, size = 0.6) 
-
-
-# 3. Canonical proportion by age, colored by rural vs. urban
-# Get rural vs. urban
-df$urbrur[df$corpus == 'Yélî Dnye (N=41)'] <- 'Rural'
-df$urbrur[df$corpus == 'Quechua (N=3)'] <- 'Rural'
-df$urbrur[df$corpus == 'English-Bergelson (N=10)' | df$corpus == 'English-Seidl (N=10)'] <- 'Urban'
-df$urbrur[df$corpus == 'Tseltal (N=10)'] <- 'Rural'
-df$urbrur[df$corpus == 'French (N=10)'] <- 'Urban'
-df$urbrur[df$corpus == 'Tsimane\' (N=30)'] <- 'Rural'
-df$urbrur[df$corpus == 'Solomon (N=15)'] <- 'Rural'
-
-# Prepare data for plotting
-sub_for_urbrur <- subset(df, age_mo_round <= 20)
-# To see full age range plotted, uncomment the following line:
-# sub_for_urbrur <- df
-
-# a. Scatterplot for rural vs. urban
-p_urbrur <- ggplot(sub_for_urbrur, aes(x = age_mo_round, y = cp, color = urbrur)) + geom_point() + 
-  xlab("Age (months)") + ylab("Canonical proportion") + 
-  theme(legend.position="bottom") +
-  guides(colour = guide_legend(nrow = 1)) + 
-  theme(legend.title=element_blank()) + 
-  geom_point(size=3) + 
-  scale_color_manual(values = c('grey70', 'grey30'))
-
-# b. Barplot for rural vs. urban
-sub_for_urbrur.summary <- sub_for_urbrur %>%
-  group_by(urbrur) %>%
-  summarise(mean = mean(cp), sd = sd(cp), n = n(), se = sd / sqrt(n))
-
-barurbrur <-ggplot(data=sub_for_urbrur, aes(x=urbrur, y=cp, fill=urbrur)) +
-  geom_bar(fun = "mean", stat = "summary") +
-  theme(axis.title.y=element_blank(),legend.position="none") +
-  geom_jitter(width=0.15, size = 0.25, colour = 'grey50') +
-  xlab("Environment") + 
-  scale_fill_manual(values = c('grey70', 'grey30')) +
-  geom_errorbar(data=sub_for_urbrur.summary, aes(x=urbrur,y=mean,ymin=mean-se,ymax=mean+se), width=.2, size = 0.6) 
-
-
-# 4. Make final combined plot for ICPhs paper
-p_combined <- ggarrange(p_corpus,
-ggarrange(p_syllcomp, barcomp, ncol=2, widths=c(1.7,1), common.legend = TRUE, legend="bottom", align="h"),
-ggarrange(p_urbrur, barurbrur, ncol=2, widths=c(1.3,2), common.legend = TRUE, legend="bottom", align="h"),
-nrow=3, heights = c(10,6,6)
-)
-ggsave("../results/combined-plot.pdf", width = 4.5, height = 9.12, p_combined)
-
-
-
-
-
-
-### PART 3: Statistical analyses
+### PART 2: Statistical analyses for ICPhS paper
 
 # 1. Regression look at relationship between age and canonical proportion
 # calculate zscored age + zscored age^2 for regression
@@ -234,23 +154,22 @@ anova(age.model, agesqz.model)
 # age.model       4 2024.3 2034.6 -1008.14   2016.3                         
 # agesqz.model    7 1813.7 1831.8  -899.83   1799.7 216.62  3  < 2.2e-16 ***
 
-# 2. Welch's T-Tests comparing syllabic complexities
-df_syllcomp <- subset(df, age_mo_round >= 1 & age_mo_round <= 40)
+# T-tests replaced with regressions (see below)
+# Welch's T-Tests comparing syllabic complexities
+# df_syllcomp <- subset(df, age_mo_round >= 1 & age_mo_round <= 40)
 # Compare low vs. high
-df_syllcomp_lowhigh <- subset(df_syllcomp, syllcomplexity != "Moderate")
-t.test(cp~syllcomplexity, data = df_syllcomp_lowhigh)
+# df_syllcomp_lowhigh <- subset(df_syllcomp, syllcomplexity != "Moderate")
+# t.test(cp~syllcomplexity, data = df_syllcomp_lowhigh)
 # Compare low vs. moderate
-df_syllcomp_lowmod <- subset(df_syllcomp, syllcomplexity != "High")
-t.test(cp~syllcomplexity, data = df_syllcomp_lowmod)
+# df_syllcomp_lowmod <- subset(df_syllcomp, syllcomplexity != "High")
+# t.test(cp~syllcomplexity, data = df_syllcomp_lowmod)
 # Compare moderate vs. high
-df_syllcomp_modhigh <- subset(df_syllcomp, syllcomplexity != "Low")
-t.test(cp~syllcomplexity, data = df_syllcomp_modhigh)
+# df_syllcomp_modhigh <- subset(df_syllcomp, syllcomplexity != "Low")
+# t.test(cp~syllcomplexity, data = df_syllcomp_modhigh)
 
-
-
-# 3. Welch's T-Test comparing urban vs. rural in 6-20mo subsample (i.e., ages where they overlap)
-df_urbrur <- subset(df, age_mo_round >= 6 & age_mo_round <= 20)
-t.test(cp~urbrur, data = df_urbrur)
+# Welch's T-Test comparing urban vs. rural in 6-20mo subsample (i.e., ages where they overlap)
+# df_urbrur <- subset(df, age_mo_round >= 6 & age_mo_round <= 20)
+# t.test(cp~urbrur, data = df_urbrur)
 # Welch Two Sample t-test
 # 
 # data:  cp by urbrur
@@ -261,3 +180,106 @@ t.test(cp~urbrur, data = df_urbrur)
 # sample estimates:
 #   mean in group Rural mean in group Urban 
 # 0.3235304           0.1903346 
+
+
+# 2. Syllabic Complexity Regression
+# get relevant subset of data; recalculate z-scored ages
+df_syllcomp <- subset(df, age_mo_round >= 1 & age_mo_round <= 40)
+df_syllcomp$age_mo_round_z <- (df_syllcomp$age_mo_round - mean(df_syllcomp$age_mo_round))/sd(df_syllcomp$age_mo_round)
+df_syllcomp$age_mo_round_sq <- df_syllcomp$age_mo_round_z**2
+df_syllcomp$age_mo_round_sq_z <- (df_syllcomp$age_mo_round_sq - mean(df_syllcomp$age_mo_round_sq))/sd(df_syllcomp$age_mo_round_sq)
+
+# fit model
+syllcomp.model <- glm(cp ~ age_mo_round_z*syllcomplexity + age_mo_round_sq_z*syllcomplexity, data = df_syllcomp, family = binomial(), weights = n_speechlike)
+# summary(syllcomp.model)
+# Anova(syllcomp.model, type = 3)
+
+# 3. Urban vs. Rural Regression
+# get relevant subset of data; recalculate z-scored ages
+df_urbrur <- subset(df, age_mo_round >= 6 & age_mo_round <= 20)
+df_urbrur$age_mo_round_z <- (df_urbrur$age_mo_round - mean(df_urbrur$age_mo_round))/sd(df_urbrur$age_mo_round)
+df_urbrur$age_mo_round_sq <- df_urbrur$age_mo_round_z**2
+df_urbrur$age_mo_round_sq_z <- (df_urbrur$age_mo_round_sq - mean(df_urbrur$age_mo_round_sq))/sd(df_urbrur$age_mo_round_sq)
+
+# fit model
+urbrur.model <- glm(cp ~ age_mo_round_z*urbrur + age_mo_round_sq_z*urbrur, data = df_urbrur, family = binomial(), weights = n_speechlike)
+# summary(urbrur.model)
+# Anova(urbrur.model, type = 3)
+
+### PART 3: Plots for ICPhS paper
+
+# 1. Canonical proportion by age, colored by corpus (updated from BUCLD version for increased readability)
+p_corpus <- ggplot(df, aes(x = age_mo_round, y = cp, color = corpus, shape = corpus)) + geom_point() + 
+  xlab("Age (months)") + ylab("Canonical proportion") + 
+  theme(legend.position="bottom") +
+  guides(colour = guide_legend(nrow = 3)) + 
+  theme(legend.title=element_blank()) + 
+  geom_point(size=3) +
+  scale_color_brewer(palette = "Dark2") +
+  scale_shape_manual(values=c(16,16,20,20,18,15,16,17))
+
+# 2. Canonical proportion by age, colored by syllabic complexity of the language
+
+# Prepare data for plotting (subset data to overlapping region)
+sub_for_comp <- subset(df, age_mo_round <= 40)
+# To see full age range plotted, uncomment the following line:
+# sub_for_comp <- df
+
+# a. Scatterplot for syllabic complexity
+scatter_syllcomp <- ggplot(sub_for_comp, aes(x = age_mo_round, y = cp, fill = syllcomplexity, shape = syllcomplexity)) + geom_point() + 
+  xlab("Age (months)") + ylab("Canonical proportion") + 
+  theme(legend.position="bottom") +
+  guides(colour = guide_legend(nrow = 1)) + 
+  theme(legend.title=element_blank()) + 
+  geom_point(size=3) + 
+  scale_shape_manual(values=c(25, 23, 24))
+
+# b. Barplot for syllabic complexity
+syllcomp_info <- as.data.frame(Effect(c("syllcomplexity"), syllcomp.model))
+bar_syllcomp <- syllcomp_info %>% 
+  ggplot(aes(x = syllcomplexity, y = fit, fill = syllcomplexity)) +
+  geom_bar(stat = "identity") +
+  geom_errorbar(aes(ymin = lower, ymax = upper), width=.2, linewidth = 0.6) + 
+  theme(axis.title.y=element_blank(),legend.position="none") + 
+  ylim(0, max(layer_scales(scatter_syllcomp)$y$range$range)) + 
+  xlab("Syllable Complexity")
+
+# 3. Canonical proportion by age, colored by rural vs. urban
+
+# Prepare data for plotting
+sub_for_urbrur <- subset(df, age_mo_round <= 20)
+# To see full age range plotted, uncomment the following line:
+# sub_for_urbrur <- df
+
+# a. Scatterplot for rural vs. urban
+scatter_urbrur <- ggplot(sub_for_urbrur, aes(x = age_mo_round, y = cp, color = urbrur)) + geom_point() + 
+  xlab("Age (months)") + ylab("Canonical proportion") + 
+  theme(legend.position="bottom") +
+  guides(colour = guide_legend(nrow = 1)) + 
+  theme(legend.title=element_blank()) + 
+  geom_point(size=3) + 
+  scale_color_manual(values = c('grey70', 'grey30'))
+
+# b. Barplot for rural vs. urban
+urbrur_info <- as.data.frame(Effect(c("urbrur"), urbrur.model))
+
+bar_urbrur <- urbrur_info %>% 
+  ggplot(aes(x = urbrur, y = fit, fill = urbrur)) +
+  geom_bar(stat = "identity") +
+  geom_errorbar(aes(ymin = lower, ymax = upper), width=.2, linewidth = 0.6) + 
+  scale_fill_manual(values = c('grey70', 'grey30')) + 
+  theme(axis.title.y=element_blank(),legend.position="none") + 
+  ylim(0, max(layer_scales(scatter_urbrur)$y$range$range)) + 
+  xlab("Environment")
+
+
+# 4. Combine above plots to make final plot for ICPhs paper
+p_combined <- ggarrange(p_corpus,
+ggarrange(scatter_syllcomp, bar_syllcomp, ncol=2, widths=c(1.7,1), common.legend = TRUE, legend="bottom", align="h"),
+ggarrange(scatter_urbrur, bar_urbrur, ncol=2, widths=c(1.3,2), common.legend = TRUE, legend="bottom", align="h"),
+nrow=3, heights = c(10,6,6)
+)
+ggsave("../results/combined-plot.pdf", width = 4.5, height = 9.12, p_combined)
+
+
+
