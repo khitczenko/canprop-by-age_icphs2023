@@ -222,6 +222,8 @@ p_corpus <- ggplot(df, aes(x = age_mo_round, y = cp, color = corpus, shape = cor
 
 # Prepare data for plotting (subset data to overlapping region)
 sub_for_comp <- subset(df, age_mo_round <= 40)
+sub_for_comp$fitted=fitted(syllcomp.model)
+
 # To see full age range plotted, uncomment the following line:
 # sub_for_comp <- df
 
@@ -232,7 +234,7 @@ scatter_syllcomp <- ggplot(sub_for_comp, aes(x = age_mo_round, y = cp, fill = sy
   guides(colour = guide_legend(nrow = 1)) + 
   theme(legend.title=element_blank()) + 
   geom_point(size=3) + 
-  scale_shape_manual(values=c(25, 23, 24))
+  scale_shape_manual(values=c(25, 23, 24)) + geom_line(aes(y = fitted), size = 1)
 
 # b. Barplot for syllabic complexity
 syllcomp_info <- as.data.frame(Effect(c("syllcomplexity"), syllcomp.model))
