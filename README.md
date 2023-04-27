@@ -1,6 +1,6 @@
 To run the analyses from our ICPhS 2023 submission, run scripts/analysis.R. This reads in data/combined-data-for-analysis.csv and makes the plots and runs the statistical analyses included in the paper.
 
-If you want to reproduce the full pipeline, please get in touch with Kasia Hitczenko to request access to the following OSF directory (https://osf.io/tegsx/) and relevant gin datasets (phonSES, png2019, solomon, tsimane2017).
+If you want to reproduce the full pipeline, you'll need access to the following OSF directory (https://osf.io/tegsx/) and relevant gin datasets (phonSES, png2019, solomon, tsimane2017). Place the files from OSF in the data/ directory, then run: (1) get-child-gender-zooniverse.R, (2-5) get-babblecorpus-cps.R, get-solomon-data.R, get-semenzin-yeli-data.R, get-zooniverse-cps.R, (6) analysis.R.
 
 
 
@@ -25,9 +25,11 @@ raw data needed to reproduce the full pipeline start-to-finish (available in htt
 * CR_by_child-updated_21_01.csv: Canonical proportions from Semenzin work
 
 
-/scripts
+/scripts (Run in this order to reproduce the full pipeline)
 
 1. get-child-gender-zooniverse.R
-2-5. get-babblecorpus-cps.R; get-solomon-data.R; get-semenzin-yeli-data.R; get-zooniverse-cps.R
+2. get-babblecorpus-cps.R
+3. get-solomon-data.R
+4. get-semenzin-yeli-data.R
+5. get-zooniverse-cps.R
 6. analysis.R
-
