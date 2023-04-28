@@ -27,7 +27,7 @@ raw data needed to reproduce the full pipeline start-to-finish (available in htt
 * bsl_metadata_tsi_full.csv: Additional metadata for Tsimane' children in the sample
 * CR_by_child-updated_21_01.csv: Canonical proportions from Semenzin work
 
-datasets need to reproduce the full pipeline start-to-finish; these repos are currently private - request access by emailing Kasia Hitczenko).
+datasets need to reproduce the full pipeline start-to-finish (phonSES, png2019, solomon, tsimane2017)  are currently private - request access by emailing Kasia Hitczenko).
 
 ### /scripts (Run in this order to reproduce the full pipeline)
 
