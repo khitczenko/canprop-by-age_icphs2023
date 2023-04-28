@@ -9,10 +9,10 @@ Note: If you want to reproduce the full pipeline, contact Kasia Hitczenko, as yo
 
 ## Description of other contents 
 
-/data
+### /data
 
 output data:
-* combined-data-for-analysis.csv: full data used as input to our analyses. This is created by analysis.R from the following four sources of data:
+* combined-data-for-analysis.csv: full data used as input to our analyses. This is created by analysis.Rmd from the following four sources of data:
 * babblecorpus_cp.csv: data for children from babblecorpus; output from get-babblecorpus-cps.R script
 * solomon_cp.csv: data for hand-coded solomon children; output from get-solomon-data.R script
 * yeli-semenzin_cp.csv: data for yeli children that come from work by semenzin; output from get-semenzin-yeli-data.R
@@ -27,8 +27,9 @@ raw data needed to reproduce the full pipeline start-to-finish (available in htt
 * bsl_metadata_tsi_full.csv: Additional metadata for Tsimane' children in the sample
 * CR_by_child-updated_21_01.csv: Canonical proportions from Semenzin work
 
+datasets need to reproduce the full pipeline start-to-finish; these repos are currently private - request access by emailing Kasia Hitczenko).
 
-/scripts (Run in this order to reproduce the full pipeline)
+### /scripts (Run in this order to reproduce the full pipeline)
 
 1. get-child-gender-zooniverse.R
 2. get-babblecorpus-cps.R

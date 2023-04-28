@@ -26,7 +26,8 @@ library(gghighlight)
 ```{r, create-input-data, echo=FALSE, include=FALSE}
 
 # # These commented-out lines merge data sources and create combined-data-for-analysis.R,
-# # which gets read in below.
+# # which gets read in below. This code needs to be uncommented if reproducing the pipeline
+# # from start-to-finish, but should otherwise be left untouched.
 # # read in data from 4 sources and merge
 # bc <- read.csv('../data/babblecorpus_cp.csv')
 # zo <- read.csv('../data/zooniverse_cp.csv')
