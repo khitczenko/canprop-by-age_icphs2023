@@ -301,3 +301,10 @@ p_sex
 
 ```
 
+\newpage
+
+## Package and environment versions
+
+```{r}
+sessionInfo()
+```
