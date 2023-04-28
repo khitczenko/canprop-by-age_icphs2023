@@ -1,17 +1,16 @@
 ---
-title: "Analyses for 'The development of canonical proportion continues past toddlerhood'"
+title: "Code for 'The development of canonical proportion continues past toddlerhood' (ICPhS 2023)"
 author: "Kasia Hitczenko"
-date: '2023-04-27'
+date: '`r format(Sys.Date(), "%B %d, %Y")`'
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
 ```
 
-```{r, load-packages, echo=FALSE}
+```{r, load-packages, echo=FALSE, include=FALSE}
 # Load packages
-
 library(plyr)
 library(dplyr)
 library(lme4)
@@ -19,42 +18,82 @@ library(influence.ME)
 library(car)
 library(ggplot2)
 library(ggpubr)
-library("RColorBrewer")
-library("plotrix")
+library(RColorBrewer)
+library(plotrix)
+library(gghighlight)
 ```
 
-```{r, read-in-data}
-# Read in combined data (created by commented-out code above)
+```{r, create-input-data, echo=FALSE, include=FALSE}
+
+# # These commented-out lines merge data sources and create combined-data-for-analysis.R,
+# # which gets read in below.
+# # read in data from 4 sources and merge
+# bc <- read.csv('../data/babblecorpus_cp.csv')
+# zo <- read.csv('../data/zooniverse_cp.csv')
+# so <- read.csv('../data/solomon_cp.csv')
+# ye <- read.csv('../data/yeli-semenzin_cp.csv')
+# df <- rbind.fill(bc, zo, so, ye)
+# # nrow(df) # 137
+# 
+# # because of overlaps, we only want to use yeli children from yeli-semenzin
+# # & babblecorpus -> get rid of 5 kids from zooniverse_cp.
+# df <- subset(df, corpus != 'yeli')
+# # nrow(df) # 132
+# 
+# # exclude 3 french phonses kids that didn't give consent for scientific archiving
+# # they are the only ones who don't have gender info
+# df <- subset(df, !(is.na(child_gender)))
+# # nrow(df) # 129 children in our sample
+# 
+# # standardize corpus names across data sources
+# df$corpus[df$corpus == 'Yélî'] <- 'Yélî Dnye'
+# df$corpus[df$corpus == 'yeli-semenzin'] <- 'Yélî Dnye'
+# df$corpus[df$corpus == 'purdue'] <- 'English-Seidl'
+# df$corpus[df$corpus == 'french'] <- 'French'
+# df$corpus[df$corpus == 'solomon'] <- 'Solomon'
+# df$corpus[df$corpus == 'tsimane'] <- 'Tsimane\''
+# 
+# # Get syllabic complexity
+# langinfo <- read.csv("../data/LAAC_Internship2020_Languages.xlsx - Usable as csv.csv")
+# df$syllcomplexity[df$corpus == 'Yélî Dnye'] <- langinfo$Maddieson_sylcomp[langinfo$Language == 'Yélî']
+# df$syllcomplexity[df$corpus == 'Quechua'] <- langinfo$Maddieson_sylcomp[langinfo$Language == 'Quechua']
+# df$syllcomplexity[df$corpus == 'English-Bergelson' | df$corpus == 'English-Seidl'] <- langinfo$Maddieson_sylcomp[langinfo$Language == 'English']
+# df$syllcomplexity[df$corpus == 'Tseltal'] <- langinfo$Maddieson_sylcomp[langinfo$Language == 'Tseltal']
+# df$syllcomplexity[df$corpus == 'French'] <- langinfo$Maddieson_sylcomp[langinfo$Language == 'French']
+# df$syllcomplexity[df$corpus == 'Tsimane\''] <- langinfo$Maddieson_sylcomp[langinfo$Language == 'Tsimane']
+# df$syllcomplexity[df$corpus == 'Solomon'] <- langinfo$Maddieson_sylcomp[langinfo$Language == 'Roviana']
+# 
+# # Get rural vs. urban
+# df$urbrur[df$corpus == 'Yélî Dnye'] <- 'Rural'
+# df$urbrur[df$corpus == 'Quechua'] <- 'Rural'
+# df$urbrur[df$corpus == 'English-Bergelson' | df$corpus == 'English-Seidl'] <- 'Urban'
+# df$urbrur[df$corpus == 'Tseltal'] <- 'Rural'
+# df$urbrur[df$corpus == 'French'] <- 'Urban'
+# df$urbrur[df$corpus == 'Tsimane\''] <- 'Rural'
+# df$urbrur[df$corpus == 'Solomon'] <- 'Rural'
+# 
+# # Set missing weights to the minimum weights value
+# df$n_speechlike[is.na(df$n_speechlike)] <- min(df$n_speechlike, na.rm = TRUE)
+# 
+# write.csv(df,"../data/combined-data-for-analysis.csv", row.names = FALSE, quote = FALSE)
+
+```
+
+```{r, read-in-data, echo=FALSE, include=FALSE}
+
+# Read in combined data (created by commented-out code above in create-input-data)
 df <- read.csv("../data/combined-data-for-analysis.csv", stringsAsFactors = FALSE)
-
-# Set missing weights to the minimum weights value
-df$n_speechlike[is.na(df$n_speechlike)] <- min(df$n_speechlike, na.rm = TRUE)
-
-# Get syllabic complexity
-langinfo <- read.csv("../data/LAAC_Internship2020_Languages.xlsx - Usable as csv.csv")
-df$syllcomplexity[df$corpus == 'Yélî Dnye (N=41)'] <- langinfo$Maddieson_sylcomp[langinfo$Language == 'Yélî']
-df$syllcomplexity[df$corpus == 'Quechua (N=3)'] <- langinfo$Maddieson_sylcomp[langinfo$Language == 'Quechua']
-df$syllcomplexity[df$corpus == 'English-Bergelson (N=10)' | df$corpus == 'English-Seidl (N=10)'] <- langinfo$Maddieson_sylcomp[langinfo$Language == 'English']
-df$syllcomplexity[df$corpus == 'Tseltal (N=10)'] <- langinfo$Maddieson_sylcomp[langinfo$Language == 'Tseltal']
-df$syllcomplexity[df$corpus == 'French (N=10)'] <- langinfo$Maddieson_sylcomp[langinfo$Language == 'French']
-df$syllcomplexity[df$corpus == 'Tsimane\' (N=30)'] <- langinfo$Maddieson_sylcomp[langinfo$Language == 'Tsimane']
-df$syllcomplexity[df$corpus == 'Solomon (N=15)'] <- langinfo$Maddieson_sylcomp[langinfo$Language == 'Roviana']
 df$syllcomplexity <- factor(df$syllcomplexity, levels = c("Low", "Moderate", "High"))
 
-# Get rural vs. urban
-df$urbrur[df$corpus == 'Yélî Dnye (N=41)'] <- 'Rural'
-df$urbrur[df$corpus == 'Quechua (N=3)'] <- 'Rural'
-df$urbrur[df$corpus == 'English-Bergelson (N=10)' | df$corpus == 'English-Seidl (N=10)'] <- 'Urban'
-df$urbrur[df$corpus == 'Tseltal (N=10)'] <- 'Rural'
-df$urbrur[df$corpus == 'French (N=10)'] <- 'Urban'
-df$urbrur[df$corpus == 'Tsimane\' (N=30)'] <- 'Rural'
-df$urbrur[df$corpus == 'Solomon (N=15)'] <- 'Rural'
-
 ```
 
-## Regressions looking at the relationship between age and canonical proportion
+## 1. Statistical analyses for the ICPhS2023 paper
 
-```{r age-vs-cp, echo=FALSE}
+### a. Regressions studying the relationship between age and canonical proportion
+
+To study how canonical proportion develops through 6 years of age, we compared two models: (1) a mixed effects logistic regression predicting the effect of age on CP, controlling for gender and including corpus in the random effects structure and (2) the same model but instead with age-squared as a predictor. This analysis corresponds to (1) and (2) in the paper.
+
+```{r age-vs-cp, echo=FALSE, include=FALSE}
 
 # Calculate z-scored age + z-scored age^2 for regression
 df$age_mo_round_z <- (df$age_mo_round - mean(df$age_mo_round))/sd(df$age_mo_round)
@@ -64,25 +103,145 @@ df$age_mo_round_sq_z <- (df$age_mo_round_sq - mean(df$age_mo_round_sq))/sd(df$ag
 ## fit initial model using all data
 ## running the full models (with slopes + intercepts) results in singular fit
 ## so we step back to just slopes; we compare a linear model to a quadratic model
+## warning messages about non-integer successes in a binomial glm can be ignored
 # slopes & intercepts: age.model <- glmer(cp ~ age_mo_round_z + child_gender + (1+age_mo_round_z|corpus), data = df, family = binomial(), weights = n_speechlike)
 age.model <- glmer(cp ~ age_mo_round_z + child_gender + (0+age_mo_round_z|corpus), data = df, family = binomial(), weights = n_speechlike)
-# slopes & intercepts: agesqz.model <- glmer(cp ~ age_mo_round_sq_z + age_mo_round_z + child_gender + (1 + age_mo_round_z + age_mo_round_sq_z|corpus), data = df, family = binomial(), weights = n_speechlike)
-agesqz.model <- glmer(cp ~ age_mo_round_sq_z + age_mo_round_z + child_gender + (0 + age_mo_round_z + age_mo_round_sq_z|corpus), data = df, family = binomial(), weights = n_speechlike)
-
-summary(age.model)
-summary(agesqz.model)
-anova(age.model, agesqz.model)
+# slopes & intercepts: agesq.model <- glmer(cp ~ age_mo_round_sq_z + age_mo_round_z + child_gender + (1 + age_mo_round_z + age_mo_round_sq_z|corpus), data = df, family = binomial(), weights = n_speechlike)
+agesq.model <- glmer(cp ~ age_mo_round_sq_z + age_mo_round_z + child_gender + (0 + age_mo_round_z + age_mo_round_sq_z|corpus), data = df, family = binomial(), weights = n_speechlike)
 
 ```
 
-## Regression 
+Output of the linear model:
 
-## BUCLD 
+```{r, linear-model-summary, echo=FALSE}
+summary(age.model)
+```
 
-This work was first presented at BUCLD 2022. The slides are available here: <https://khitczenko.github.io/BUCLD2022.pdf> and the following code creates the
-plots included there.
+Output of the quadratic model:
 
-```{r bucld-plots}
+```{r, quadratic-model-summary, echo=FALSE}
+summary(agesq.model)
+```
+
+Comparison between the two models, showing that the quadratic model is a better fit:
+
+```{r, age-vs-cp-model-comparison, echo=FALSE}
+anova(age.model, agesq.model)
+```
+
+### b. Regression studying the relationship between syllabic complexity and canonical proportion
+
+This corresponds to (3) in the paper. We found a significant main effect of syllabic complexity on canonical proportion and
+in interaction with both age and age$^2$, meaning that both the rates of learning and plateauing differed
+depending on the syllabic complexity of the language the children were learning.
+
+```{r, syllcomp-model, echo=FALSE}
+
+# get relevant subset of data; recalculate z-scored ages
+df_syllcomp <- subset(df, age_mo_round >= 1 & age_mo_round <= 40)
+df_syllcomp$age_mo_round_z <- (df_syllcomp$age_mo_round - mean(df_syllcomp$age_mo_round))/sd(df_syllcomp$age_mo_round)
+df_syllcomp$age_mo_round_sq <- df_syllcomp$age_mo_round_z**2
+df_syllcomp$age_mo_round_sq_z <- (df_syllcomp$age_mo_round_sq - mean(df_syllcomp$age_mo_round_sq))/sd(df_syllcomp$age_mo_round_sq)
+
+# fit model - warnings about non-integers cps can be safely ignored
+syllcomp.model <- glm(cp ~ age_mo_round_z*syllcomplexity + age_mo_round_sq_z*syllcomplexity, data = df_syllcomp, family = binomial(), weights = n_speechlike)
+summary(syllcomp.model)
+Anova(syllcomp.model, type = 3)
+
+```
+
+### c. Regression studying the relationship between community (urban vs. rural) and canonical proportion
+
+Here, we found a significant main effect of community on canonical proportion, but no interaction effects with age  or age$^2$, suggesting that children raised in rural environments may have higher canonical proportions than those raised in urban environments, but show similar developmental patterns (i.e., slopes and plateaus). This corresponds to the analysis described at the end of p.3 of the paper.
+
+```{r, urbrur-model, echo=FALSE}
+
+# get relevant subset of data; recalculate z-scored ages
+df_urbrur <- subset(df, age_mo_round >= 6 & age_mo_round <= 20)
+df_urbrur$age_mo_round_z <- (df_urbrur$age_mo_round - mean(df_urbrur$age_mo_round))/sd(df_urbrur$age_mo_round)
+df_urbrur$age_mo_round_sq <- df_urbrur$age_mo_round_z**2
+df_urbrur$age_mo_round_sq_z <- (df_urbrur$age_mo_round_sq - mean(df_urbrur$age_mo_round_sq))/sd(df_urbrur$age_mo_round_sq)
+
+# fit model
+urbrur.model <- glm(cp ~ age_mo_round_z*urbrur + age_mo_round_sq_z*urbrur, data = df_urbrur, family = binomial(), weights = n_speechlike)
+summary(urbrur.model)
+Anova(urbrur.model, type = 3)
+
+```
+
+## 2. Figure 1 from the ICPhS2023 paper
+
+```{r, scatter-colored-by-corpus}
+
+# 1. Canonical proportion by age, colored by corpus (updated from BUCLD version for increased readability)
+p_corpus <- ggplot(df, aes(x = age_mo_round, y = cp, color = corpus, shape = corpus)) + geom_point() + 
+  xlab("Age (months)") + ylab("Canonical proportion") + 
+  theme(legend.position="bottom") +
+  guides(colour = guide_legend(nrow = 3)) + 
+  theme(legend.title=element_blank()) + 
+  geom_point(size=3) +
+  scale_color_brewer(palette = "Dark2") +
+  scale_shape_manual(values=c(16,16,20,20,18,15,16,17))
+
+```
+
+```{r, scatter-colored-by-syllabic-complexity}
+
+# 2. Canonical proportion by age, colored by syllabic complexity
+
+# get fitted values from model output to plot lines
+df$fitted_syllcomp[df$age_mo_round >= 1 & df$age_mo_round <= 40]=fitted(syllcomp.model)
+
+# Scatterplot for syllabic complexity
+scatter_syllcomp <- ggplot(df, aes(x = age_mo_round, y = cp, fill = syllcomplexity)) + geom_point() + 
+  xlab("Age (months)") + ylab("Canonical proportion") + 
+  theme(legend.position="bottom") +
+  guides(colour = guide_legend(nrow = 1)) + 
+  theme(legend.title=element_blank()) + 
+  geom_point(aes(shape=syllcomplexity), size=3) + 
+  scale_shape_manual(values=c(25, 23, 24)) + 
+  geom_line(aes(y = fitted_syllcomp, color = syllcomplexity), size = 1, show.legend = FALSE) +
+  gghighlight(age_mo_round < 40, use_direct_label = FALSE)
+
+```
+
+```{r, scatter-colored-by-community}
+
+# 2. Canonical proportion by age, colored by community
+
+# get fitted values from model output to plot lines
+df$fitted_urbrur[df$age_mo_round >= 6 & df$age_mo_round <= 20]=fitted(urbrur.model)
+
+# a. Scatterplot for rural vs. urban
+scatter_urbrur <- ggplot(df, aes(x = age_mo_round, y = cp, fill = urbrur)) + geom_point() + 
+  xlab("Age (months)") + ylab("Canonical proportion") + 
+  theme(legend.position="bottom") +
+  guides(colour = guide_legend(nrow = 1)) + 
+  theme(legend.title=element_blank()) + 
+  geom_point(aes(shape=urbrur), size=3) + 
+  scale_shape_manual(values=c(21,22)) +
+  scale_color_manual(values = c('#0072B2', '#E69F00')) + 
+  scale_fill_manual(values = c('#0072B2', '#E69F00')) + 
+  geom_line(aes(y = fitted_urbrur, color = urbrur), size = 1, show.legend = FALSE) + 
+  gghighlight(age_mo_round > 6 & age_mo_round < 20, use_direct_label = FALSE) 
+
+```
+
+```{r, combined-plot, fig.width = 4, fig.height = 10}
+
+p_combined <- ggarrange(p_corpus, scatter_syllcomp, scatter_urbrur, nrow=3, heights = c(10,8,8))
+p_combined
+ggsave("../results/combined-plot.pdf", width = 4.5, height = 9.12, p_combined)
+
+```
+
+## 3. BUCLD Plots
+
+This work was first presented at BUCLD 2022. The slides are available here: <https://khitczenko.github.io/BUCLD2022.pdf> and the following code creates the plots included there.
+
+### Canonical proportion by age, colored by corpus
+
+```{r, cp-by-age-colored-by-corpus-bucld, fig.width = 4, fig.height = 4}
 
 # 1. Canonical proportion by age, colored by corpus
 p_corpus <- ggplot(df, aes(x = age_mo_round, y = cp, color = corpus)) + geom_point() + 
@@ -92,6 +251,12 @@ p_corpus <- ggplot(df, aes(x = age_mo_round, y = cp, color = corpus)) + geom_poi
   theme(legend.title=element_blank()) + 
   geom_point(size=3)
 p_corpus
+
+```
+
+### Canonical proportion by age, separated by corpus
+
+```{r, cp-by-age-sep-by-corpus-bucld, fig.width = 4, fig.height = 4}
 
 # 2. Separate out each corpus and plot linear vs. quadratic lines
 p_sep_by_corpus <- ggplot(df, aes(x = age_mo_round, y = cp)) +
@@ -103,11 +268,32 @@ p_sep_by_corpus <- ggplot(df, aes(x = age_mo_round, y = cp)) +
   scale_color_manual(name='Regression Model', breaks=c('Linear', 'Quadratic'), values=c('Quadratic'='blue', 'Linear'='purple'))
 p_sep_by_corpus
 
-# 3. Canonical proportion by age, colored by child sex
+```
+
+### Canonical proportion by age, colored by syllabic complexity
+
+```{r, cp-by-age-colored-by-syllabic-complexity, fig.width = 4, fig.height = 4}
+
+# Scatter plot colored by syllable complexity
+p_syllcomp <- ggplot(df, aes(x = age_mo_round, y = cp, color = syllcomplexity)) + geom_point() + 
+  xlab("Age (months)") + ylab("Canonical proportion") + 
+  theme(legend.position="bottom") +
+  guides(colour = guide_legend(nrow = 1)) + 
+  theme(legend.title=element_blank()) + 
+  geom_point(size=3)
+p_syllcomp
+
+```
+
+### Canonical proportion by age, colored by child sex
+
+```{r, cp-by-age-colored-by-child-sex, fig.width = 4, fig.height = 4}
+
+# 4. Canonical proportion by age, colored by child sex
 p_sex <- ggplot(df, aes(x = age_mo_round, y = cp, color = child_gender)) + geom_point() + 
   xlab("Age (months)") + ylab("Canonical proportion") + 
-  theme(legend.position="right") +
-  guides(colour = guide_legend(nrow = 4)) + 
+  theme(legend.position="bottom") +
+  guides(colour = guide_legend(nrow = 1)) + 
   theme(legend.title=element_blank()) + 
   geom_point(size=3)
 p_sex

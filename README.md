@@ -1,10 +1,13 @@
-To run the analyses from our ICPhS 2023 submission, run scripts/analysis.R. This reads in data/combined-data-for-analysis.csv and makes the plots and runs the statistical analyses included in the paper.
+# Code to reproduce "The development of canonical proportion continues past toddlerhood" (ICPhS2023 paper)
 
-If you want to reproduce the full pipeline, you'll need access to the following OSF directory (https://osf.io/tegsx/) and relevant gin datasets (phonSES, png2019, solomon, tsimane2017). Place the files from OSF in the data/ directory, then run: (1) get-child-gender-zooniverse.R, (2-5) get-babblecorpus-cps.R, get-solomon-data.R, get-semenzin-yeli-data.R, get-zooniverse-cps.R, (6) analysis.R.
+## Information on how to reproduce our analyses
+
+To run the analyses from our ICPhS 2023 paper, you will need [RStudio](https://posit.co/download/rstudio-desktop/) ([more information here](https://libscie.github.io/rmarkdown-workshop/handout.html)). To run the analyses, open scripts/analysis.Rmd in RStudio (make sure the scripts/ directory is your working directory) and click the "knit" button near the top of the RStudio window. This reads in data/combined-data-for-analysis.csv and outputs the statistical analyses and plots we report on in the paper. 
+
+Note: If you want to reproduce the full pipeline, contact Kasia Hitczenko, as you'll need access to the following OSF directory (https://osf.io/tegsx/) and relevant gin datasets (phonSES, png2019, solomon, tsimane2017). Place the files from OSF in the data/ directory, then run: (1) get-child-gender-zooniverse.R, (2-5) get-babblecorpus-cps.R, get-solomon-data.R, get-semenzin-yeli-data.R, get-zooniverse-cps.R, (6) analysis.Rmd.
 
 
-
-Description of other contents 
+## Description of other contents 
 
 /data
 

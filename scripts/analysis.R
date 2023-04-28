@@ -71,6 +71,17 @@ df$urbrur[df$corpus == 'French (N=10)'] <- 'Urban'
 df$urbrur[df$corpus == 'Tsimane\' (N=30)'] <- 'Rural'
 df$urbrur[df$corpus == 'Solomon (N=15)'] <- 'Rural'
 
+# # standardize corpus names
+df$corpus[df$corpus == 'Yélî Dnye (N=41)'] <- 'Yélî Dnye'
+df$corpus[df$corpus == 'Yélî Dnye (N=41)'] <- 'Yélî Dnye'
+df$corpus[df$corpus == 'English-Bergelson (N=10)'] <- 'English-Bergelson'
+df$corpus[df$corpus == 'English-Seidl (N=10)'] <- 'English-Seidl'
+df$corpus[df$corpus == 'French (N=10)'] <- 'French'
+df$corpus[df$corpus == 'Solomon (N=15)'] <- 'Solomon'
+df$corpus[df$corpus == 'Tsimane\' (N=30)'] <- 'Tsimane\''
+df$corpus[df$corpus == 'Quechua (N=3)'] <- 'Quechua'
+df$corpus[df$corpus == 'Tseltal (N=10)'] <- 'Tseltal'
+
 ### PART 1: Plots for BUCLD abstract & talk
 
 # 1. Canonical proportion by age, colored by corpus
@@ -221,67 +232,101 @@ p_corpus <- ggplot(df, aes(x = age_mo_round, y = cp, color = corpus, shape = cor
 # 2. Canonical proportion by age, colored by syllabic complexity of the language
 
 # Prepare data for plotting (subset data to overlapping region)
-sub_for_comp <- subset(df, age_mo_round <= 40)
-sub_for_comp$fitted=fitted(syllcomp.model)
+# sub_for_comp <- subset(df, age_mo_round <= 40)
+# sub_for_comp$fitted[sub_for_comp$age_mo_round >= 1 & sub_for_comp$age_mo_round <= 40]=fitted(syllcomp.model)
 
 # To see full age range plotted, uncomment the following line:
-# sub_for_comp <- df
+df$fitted_syllcomp[df$age_mo_round >= 1 & df$age_mo_round <= 40]=fitted(syllcomp.model)
+
+# # a. Scatterplot for syllabic complexity
+# scatter_syllcomp <- ggplot(sub_for_comp, aes(x = age_mo_round, y = cp, fill = syllcomplexity, shape = syllcomplexity)) + geom_point() + 
+#   xlab("Age (months)") + ylab("Canonical proportion") + 
+#   theme(legend.position="bottom") +
+#   guides(colour = guide_legend(nrow = 1)) + 
+#   theme(legend.title=element_blank()) + 
+#   geom_point(size=3) + 
+#   scale_shape_manual(values=c(25, 23, 24)) + geom_line(aes(y = fitted, color = syllcomplexity), size = 1)
 
 # a. Scatterplot for syllabic complexity
-scatter_syllcomp <- ggplot(sub_for_comp, aes(x = age_mo_round, y = cp, fill = syllcomplexity, shape = syllcomplexity)) + geom_point() + 
+scatter_syllcomp <- ggplot(df, aes(x = age_mo_round, y = cp, fill = syllcomplexity)) + geom_point() + 
   xlab("Age (months)") + ylab("Canonical proportion") + 
   theme(legend.position="bottom") +
   guides(colour = guide_legend(nrow = 1)) + 
   theme(legend.title=element_blank()) + 
-  geom_point(size=3) + 
-  scale_shape_manual(values=c(25, 23, 24)) + geom_line(aes(y = fitted), size = 1)
+  geom_point(aes(shape=syllcomplexity), size=3) + 
+  scale_shape_manual(values=c(25, 23, 24)) + 
+  geom_line(aes(y = fitted_syllcomp, color = syllcomplexity), size = 1, show.legend = FALSE) +
+  gghighlight(age_mo_round < 40, use_direct_label = FALSE)
 
-# b. Barplot for syllabic complexity
-syllcomp_info <- as.data.frame(Effect(c("syllcomplexity"), syllcomp.model))
-bar_syllcomp <- syllcomp_info %>% 
-  ggplot(aes(x = syllcomplexity, y = fit, fill = syllcomplexity)) +
-  geom_bar(stat = "identity") +
-  geom_errorbar(aes(ymin = lower, ymax = upper), width=.2, linewidth = 0.6) + 
-  theme(axis.title.y=element_blank(),legend.position="none") + 
-  ylim(0, max(layer_scales(scatter_syllcomp)$y$range$range)) + 
-  xlab("Syllable Complexity")
+
+# # b. Barplot for syllabic complexity
+# syllcomp_info <- as.data.frame(Effect(c("syllcomplexity"), syllcomp.model))
+# bar_syllcomp <- syllcomp_info %>% 
+#   ggplot(aes(x = syllcomplexity, y = fit, fill = syllcomplexity)) +
+#   geom_bar(stat = "identity") +
+#   geom_errorbar(aes(ymin = lower, ymax = upper), width=.2, linewidth = 0.6) + 
+#   theme(axis.title.y=element_blank(),legend.position="none") + 
+#   ylim(0, max(layer_scales(scatter_syllcomp)$y$range$range)) + 
+#   xlab("Syllable Complexity")
 
 # 3. Canonical proportion by age, colored by rural vs. urban
 
 # Prepare data for plotting
-sub_for_urbrur <- subset(df, age_mo_round <= 20)
+# sub_for_urbrur <- subset(df, age_mo_round <= 20)
+# sub_for_urbrur$fitted=fitted(urbrur.model)
 # To see full age range plotted, uncomment the following line:
 # sub_for_urbrur <- df
+df$fitted_urbrur[df$age_mo_round >= 6 & df$age_mo_round <= 20]=fitted(urbrur.model)
 
 # a. Scatterplot for rural vs. urban
-scatter_urbrur <- ggplot(sub_for_urbrur, aes(x = age_mo_round, y = cp, color = urbrur)) + geom_point() + 
+scatter_urbrur <- ggplot(df, aes(x = age_mo_round, y = cp, fill = urbrur)) + geom_point() + 
   xlab("Age (months)") + ylab("Canonical proportion") + 
   theme(legend.position="bottom") +
   guides(colour = guide_legend(nrow = 1)) + 
   theme(legend.title=element_blank()) + 
-  geom_point(size=3) + 
-  scale_color_manual(values = c('grey70', 'grey30'))
+  geom_point(aes(shape=urbrur), size=3) + 
+  scale_shape_manual(values=c(21,22)) +
+  scale_color_manual(values = c('#0072B2', '#E69F00')) + 
+  scale_fill_manual(values = c('#0072B2', '#E69F00')) + 
+  geom_line(aes(y = fitted_urbrur, color = urbrur), size = 1, show.legend = FALSE) + 
+  gghighlight(age_mo_round > 6 & age_mo_round < 20, use_direct_label = FALSE) 
+
+# # a. Scatterplot for rural vs. urban
+# scatter_urbrur <- ggplot(sub_for_urbrur, aes(x = age_mo_round, y = cp, color = urbrur)) + geom_point() + 
+#   xlab("Age (months)") + ylab("Canonical proportion") + 
+#   theme(legend.position="bottom") +
+#   guides(colour = guide_legend(nrow = 1)) + 
+#   theme(legend.title=element_blank()) + 
+#   geom_point(size=3) + 
+#   scale_color_manual(values = c('grey70', 'grey30')) + 
+#   geom_line(aes(y = fitted, color = urbrur), size = 1)
+
 
 # b. Barplot for rural vs. urban
-urbrur_info <- as.data.frame(Effect(c("urbrur"), urbrur.model))
+# urbrur_info <- as.data.frame(Effect(c("urbrur"), urbrur.model))
+# 
+# bar_urbrur <- urbrur_info %>% 
+#   ggplot(aes(x = urbrur, y = fit, fill = urbrur)) +
+#   geom_bar(stat = "identity") +
+#   geom_errorbar(aes(ymin = lower, ymax = upper), width=.2, linewidth = 0.6) + 
+#   scale_fill_manual(values = c('grey70', 'grey30')) + 
+#   theme(axis.title.y=element_blank(),legend.position="none") + 
+#   ylim(0, max(layer_scales(scatter_urbrur)$y$range$range)) + 
+#   xlab("Environment")
 
-bar_urbrur <- urbrur_info %>% 
-  ggplot(aes(x = urbrur, y = fit, fill = urbrur)) +
-  geom_bar(stat = "identity") +
-  geom_errorbar(aes(ymin = lower, ymax = upper), width=.2, linewidth = 0.6) + 
-  scale_fill_manual(values = c('grey70', 'grey30')) + 
-  theme(axis.title.y=element_blank(),legend.position="none") + 
-  ylim(0, max(layer_scales(scatter_urbrur)$y$range$range)) + 
-  xlab("Environment")
 
+# # 4. Combine above plots to make final plot for ICPhs paper
+# p_combined <- ggarrange(p_corpus,
+# ggarrange(scatter_syllcomp, bar_syllcomp, ncol=2, widths=c(1.7,1), common.legend = TRUE, legend="bottom", align="h"),
+# ggarrange(scatter_urbrur, bar_urbrur, ncol=2, widths=c(1.3,2), common.legend = TRUE, legend="bottom", align="h"),
+# nrow=3, heights = c(10,6,6)
+# )
 
-# 4. Combine above plots to make final plot for ICPhs paper
 p_combined <- ggarrange(p_corpus,
-ggarrange(scatter_syllcomp, bar_syllcomp, ncol=2, widths=c(1.7,1), common.legend = TRUE, legend="bottom", align="h"),
-ggarrange(scatter_urbrur, bar_urbrur, ncol=2, widths=c(1.3,2), common.legend = TRUE, legend="bottom", align="h"),
-nrow=3, heights = c(10,6,6)
+                        scatter_syllcomp,
+                        scatter_urbrur,
+                        nrow=3, heights = c(10,8,8)
 )
 ggsave("../results/combined-plot.pdf", width = 4.5, height = 9.12, p_combined)
-
 
 
