@@ -36,4 +36,4 @@ datasets need to reproduce the full pipeline start-to-finish; these repos are cu
 3. get-solomon-data.R
 4. get-semenzin-yeli-data.R
 5. get-zooniverse-cps.R
-6. analysis.R
+6. analysis.Rmd
