@@ -1,4 +1,4 @@
-# Code to reproduce "The development of canonical proportion continues past toddlerhood" (ICPhS2023 paper)
+# Code to reproduce "The development of canonical proportion continues past toddlerhood" (ICPhS2023)
 
 ## Information on how to reproduce our analyses
 
