@@ -4,7 +4,7 @@
 
 To run the analyses from our [ICPhS 2023 paper](https://khitczenko.github.io/research/DevCanProp_ICPhS2023.pdf), you will need [RStudio](https://posit.co/download/rstudio-desktop/) ([more information here](https://libscie.github.io/rmarkdown-workshop/handout.html)). To run the analyses, open scripts/analysis.Rmd in RStudio (make sure the scripts/ directory is your working directory) and click the "knit" button near the top of the RStudio window. This reads in data/combined-data-for-analysis.csv and outputs the statistical analyses and plots we report on in the paper. 
 
-Note: If you want to reproduce the full pipeline, contact Kasia Hitczenko, as you'll need access to the following OSF directory (https://osf.io/tegsx/) and relevant gin datasets (phonSES, png2019, solomon, tsimane2017). Place the files from OSF in the data/ directory, then run: (1) get-child-gender-zooniverse.R, (2-5) get-babblecorpus-cps.R, get-solomon-data.R, get-semenzin-yeli-data.R, get-zooniverse-cps.R, (6) analysis.Rmd.
+Note: If you want to reproduce the full pipeline, contact Kasia Hitczenko, as you'll need access to the following OSF directory (https://osf.io/tegsx/) and relevant gin datasets (phonSES, png2019, solomon, tsimane2017). Place the files from OSF in the data/ directory, then run: (1) get-child-gender-zooniverse.R, (2-5) get-babblecorpus-cps.R, get-solomon-data.R, get-semenzin-yeli-data.R, get-zooniverse-cps.R, (6) analysis.Rmd from the scripts/ directory.
 
 
 ## Description of other contents 
@@ -29,7 +29,7 @@ raw data needed to reproduce the full pipeline start-to-finish (available in htt
 
 datasets need to reproduce the full pipeline start-to-finish (phonSES, png2019, solomon, tsimane2017)  are currently private - request access by emailing Kasia Hitczenko).
 
-### /scripts (Run in this order to reproduce the full pipeline)
+### /scripts (Run in this order from within the scripts/ directory to reproduce the full pipeline)
 
 1. get-child-gender-zooniverse.R
 2. get-babblecorpus-cps.R

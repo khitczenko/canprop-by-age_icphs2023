@@ -1,5 +1,4 @@
 # Process babblecorpus data
-# setwd('/Users/kasia/Documents/Research/canonical-proportions-age-bucld/scripts')
 
 # Read in annotations / private_metadata (raw files from babblecorpus)
 df <- read.csv("../data/uniqchild.csv")

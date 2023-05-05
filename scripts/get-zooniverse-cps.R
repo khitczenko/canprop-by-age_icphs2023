@@ -1,5 +1,4 @@
-# Process babblecorpus data
-# setwd('/Users/kasia/Documents/Research/canonical-proportions-age-bucld/scripts')
+# Get Zooniverse CPs
 
 library(dplyr) 
 

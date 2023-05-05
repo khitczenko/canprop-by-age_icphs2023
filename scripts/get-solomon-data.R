@@ -1,4 +1,3 @@
-# setwd('/Users/kasia/Documents/Research/canonical-proportions-age-bucld/scripts')
 library(dplyr)
 
 annotator = file = n_canonical = n_noncanonical = n_keychild <- c()
